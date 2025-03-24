@@ -1,23 +1,37 @@
-name: ci 
+name: ci
+
 on:
   push:
     branches:
       - master 
-      - main
+      - main 
+
 permissions:
   contents: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      # Checkout the current branch
       - uses: actions/checkout@v3
+
+      # Setup Python environment
       - uses: actions/setup-python@v4
         with:
-          python-version: 3.x
-      - uses: actions/cache@v2
+          python-version: '3.x'
+
+      # Cache the Python dependencies to speed up builds
+      - name: Cache Python dependencies
+        uses: actions/cache@v2
         with:
-          key: ${{ github.ref }}
-          path: .cache
-      - run: pip install mkdocs-material
-      - run: pip install pillow cairosvg
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # Install necessary dependencies
+      - run: pip install mkdocs-material pillow cairosvg
+
+      # Deploy to GitHub Pages
       - run: mkdocs gh-deploy --force
